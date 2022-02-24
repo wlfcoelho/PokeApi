@@ -1,10 +1,12 @@
 package com.example.pokemon.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.example.pokemon.model.AbilityId;
 import com.example.pokemon.model.Pokemon;
@@ -24,7 +26,9 @@ public class PokemonController {
 	@GetMapping(value = "/{id}")
 
 	public Mono<Pokemon> findById(@PathVariable("id") Integer id) {
-		return pokemonService.findById(id);
+		return pokemonService.findById(id)
+				.log()
+				.switchIfEmpty(monoReponseStatusNotFoundException());
 	}
 
 	@GetMapping(value = "/name/{name}")
@@ -48,4 +52,7 @@ public class PokemonController {
 		return pokemonService.findByListPokemon(limit, offset);
 	}
 
+	public <T> Mono <T> monoReponseStatusNotFoundException(){
+		return Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "Pokemon not found"));
+	}
 }
